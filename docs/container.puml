@@ -1,0 +1,15 @@
+@startuml Container Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title 容器图
+
+Person(user, "用户", "使用Web应用")
+System_Boundary(system, "Web Worker数据处理器") {
+    Container(spa, "Next.js应用", "JavaScript/TypeScript", "提供用户界面")
+    Container(worker, "Web Worker", "JavaScript", "处理密集型计算")
+}
+
+Rel(user, spa, "使用", "HTTP/HTTPS")
+Rel(spa, worker, "发送数据", "postMessage")
+Rel(worker, spa, "返回结果", "postMessage")
+@enduml

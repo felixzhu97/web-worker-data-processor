@@ -1,0 +1,22 @@
+@startuml Code Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title 代码图
+
+Component_Boundary(page_component, "页面组件") {
+    Component(data_fetch, "数据获取", "TypeScript", "useEffect/API调用")
+    Component(state_manage, "状态管理", "TypeScript", "useState/useReducer")
+    Component(worker_comm, "Worker通信", "TypeScript", "postMessage处理")
+}
+
+Component_Boundary(worker_component, "Worker脚本") {
+    Component(data_process, "数据处理", "JavaScript", "算法实现")
+    Component(result_format, "结果格式化", "JavaScript", "数据转换")
+}
+
+Rel(data_fetch, state_manage, "更新")
+Rel(state_manage, worker_comm, "发送")
+Rel(worker_comm, data_process, "请求处理")
+Rel(data_process, result_format, "传递结果")
+Rel(result_format, worker_comm, "返回")
+@enduml

@@ -1,0 +1,22 @@
+@startuml Component Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title 组件图
+
+Container_Boundary(app, "Next.js应用") {
+    Component(layout, "布局组件", "React", "提供页面布局")
+    Component(page, "页面组件", "React", "主页面逻辑")
+    Component(ui, "UI组件库", "React", "可复用UI组件")
+    Component(chart, "图表组件", "React", "数据可视化")
+}
+
+Container_Boundary(worker, "Web Worker") {
+    Component(processor, "数据处理", "JavaScript", "执行计算任务")
+}
+
+Rel(layout, page, "包含")
+Rel(page, ui, "使用")
+Rel(page, chart, "使用")
+Rel(page, processor, "发送数据", "postMessage")
+Rel(processor, page, "返回结果", "postMessage")
+@enduml

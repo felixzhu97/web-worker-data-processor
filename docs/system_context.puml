@@ -1,0 +1,10 @@
+@startuml System Context Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title 系统上下文图
+
+Person(user, "用户", "使用Web应用进行数据处理")
+System(web_app, "Web Worker数据处理器", "基于Next.js的Web应用")
+
+Rel(user, web_app, "使用", "HTTP/HTTPS")
+@enduml
