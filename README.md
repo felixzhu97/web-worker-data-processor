@@ -52,3 +52,4 @@ pnpm build
 - `component.puml`: 组件图
 - `code.puml`: 代码图
 - `comparison.md`: Web Worker与传统方案对比
+- `user_manual.md`: 用户手册
