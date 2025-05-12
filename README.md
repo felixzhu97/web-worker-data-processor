@@ -34,6 +34,8 @@ web-worker-data-processor/
 ├── app/                # Next.js应用路由
 │   ├── workers/        # Web Worker脚本
 ├── components/         # UI组件库
+├── dataset/            # 测试数据集
+├── docs/               # 文档和架构图
 │   ├── ui/             # 基础UI组件  
 ├── public/             # 静态资源
 ├── styles/             # 全局样式
