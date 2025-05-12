@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
@@ -19,6 +19,17 @@ export default function Home() {
   const [processingTime, setProcessingTime] = useState({ withWorker: 0, withoutWorker: 0 })
   const [activeTab, setActiveTab] = useState("with-worker")
   const workerRef = useRef<Worker | null>(null)
+  const startTimeRef = useRef<number>(0)
+
+  // 组件卸载时清理worker
+  useEffect(() => {
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+    };
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -33,25 +44,37 @@ export default function Home() {
 
     setProcessing(true)
     setProgress(0)
-    const startTime = performance.now()
-
-    // Create a new worker if it doesn't exist
-    if (!workerRef.current) {
-      workerRef.current = new Worker(new URL("./workers/data-worker.js", import.meta.url))
-
-      workerRef.current.onmessage = (e) => {
-        if (e.data.type === "progress") {
-          setProgress(e.data.progress)
-        } else if (e.data.type === "result") {
-          const endTime = performance.now()
-          setProcessingTime((prev) => ({ ...prev, withWorker: endTime - startTime }))
-          setResults(e.data.results)
-          setProcessing(false)
-        }
+    
+    // 每次处理前重置Worker
+    if (workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
+    }
+    
+    // 创建新的Worker实例
+    workerRef.current = new Worker(new URL("./workers/data-worker.js", import.meta.url))
+    
+    // 记录开始时间 
+    startTimeRef.current = performance.now()
+    
+    // 设置监听器
+    workerRef.current.onmessage = (e) => {
+      if (e.data.type === "progress") {
+        setProgress(e.data.progress)
+      } else if (e.data.type === "result") {
+        // 计算经过的时间
+        const endTime = performance.now()
+        const elapsedTime = endTime - startTimeRef.current
+        setProcessingTime((prev) => ({ ...prev, withWorker: elapsedTime }))
+        setResults(e.data.results)
+        setProcessing(false)
+      } else if (e.data.type === "error") {
+        console.error("Worker处理错误:", e.data.error);
+        setProcessing(false);
       }
     }
 
-    // Send the file to the worker
+    // 发送文件到worker
     const reader = new FileReader()
     reader.onload = (e) => {
       if (e.target?.result && workerRef.current) {
@@ -69,12 +92,14 @@ export default function Home() {
 
     setProcessing(true)
     setProgress(0)
+    
+    // 记录开始时间
     const startTime = performance.now()
-
+    
     const reader = new FileReader()
     reader.onload = (e) => {
       if (e.target?.result) {
-        // Simulate progress updates
+        // 模拟进度更新
         let progress = 0
         const interval = setInterval(() => {
           progress += 10
@@ -82,14 +107,14 @@ export default function Home() {
           if (progress >= 100) {
             clearInterval(interval)
           }
-        }, 200)
+        }, 50) // 加快进度更新速度
 
-        // Process the data (simple CSV parsing and analysis)
+        // 处理数据
         const text = e.target.result as string
         const lines = text.split("\n")
         const headers = lines[0].split(",")
 
-        const data = []
+        const data: Record<string, string | number>[] = []
         for (let i = 1; i < lines.length; i++) {
           if (lines[i].trim() === "") continue
 
@@ -104,7 +129,7 @@ export default function Home() {
           data.push(row)
         }
 
-        // Simple analysis
+        // 分析数据
         const numericColumns = headers.filter((header) => {
           return data.some((row) => typeof row[header.trim()] === "number")
         })
@@ -126,7 +151,7 @@ export default function Home() {
           }
         })
 
-        // Prepare chart data
+        // 准备图表数据
         const chartData =
           numericColumns.length > 0
             ? {
@@ -142,9 +167,15 @@ export default function Home() {
               }
             : null
 
+        // 计算处理时间
         const endTime = performance.now()
-        setProcessingTime((prev) => ({ ...prev, withoutWorker: endTime - startTime }))
+        const elapsedTime = endTime - startTime
+        setProcessingTime((prev) => ({ ...prev, withoutWorker: elapsedTime }))
         setResults({ analysis, chartData })
+        
+        // 清除进度定时器
+        clearInterval(interval)
+        setProgress(100)
         setProcessing(false)
       }
     }
