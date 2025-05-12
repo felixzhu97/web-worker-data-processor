@@ -4,9 +4,9 @@
 
 ## 技术栈
 
-- Next.js 14
-- TypeScript
-- Tailwind CSS
+- Next.js 15
+- TypeScript 5  
+- Tailwind CSS 3
 - Radix UI
 - Web Workers
 
@@ -29,27 +29,43 @@ pnpm build
 
 ## 项目结构
 
-- `app/`: Next.js应用路由
-  - `workers/`: Web Worker脚本
-- `components/`: UI组件库
-  - `ui/`: 基础UI组件
-- `public/`: 静态资源
-- `styles/`: 全局样式
-- `lib/`: 工具函数
+```
+web-worker-data-processor/
+├── app/                # Next.js应用路由
+│   ├── workers/        # Web Worker脚本
+├── components/         # UI组件库
+│   ├── ui/             # 基础UI组件  
+├── public/             # 静态资源
+├── styles/             # 全局样式
+├── lib/                # 工具函数
+```
 
-## 功能特性
+## 核心功能
 
-- 使用Web Worker处理密集型计算
-- 响应式设计，适配移动端
-- 丰富的可复用UI组件
-- 主题切换支持
+### Web Worker 数据处理
+- 使用专用线程处理CSV等大数据文件
+- 主线程与Worker线程高效通信
+- 进度实时反馈
 
-## 文档说明
+### UI组件库
+- 50+可复用组件
+- 暗黑/明亮主题
+- 响应式设计
 
-项目文档位于`docs/`目录下：
-- `system_context.puml`: 系统上下文图
-- `container.puml`: 容器图
-- `component.puml`: 组件图
-- `code.puml`: 代码图
-- `comparison.md`: Web Worker与传统方案对比
-- `user_manual.md`: 用户手册
+## 配置说明
+
+### Web Worker使用
+1. 在`app/workers/`添加Worker脚本
+2. 使用`new Worker()`创建实例
+3. 通过`postMessage`通信
+
+## 文档资源
+
+- 架构图: `docs/c4/`
+- 性能对比: `docs/qa/comparison.md`
+- 用户手册: `docs/qa/user_manual.md`
+- WebWorker原理: `docs/qa/WebWorker的原理.md`
+
+## 许可证
+
+MIT License
