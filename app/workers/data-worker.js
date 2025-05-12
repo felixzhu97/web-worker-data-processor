@@ -16,6 +16,14 @@ function processData(text) {
     const headers = lines[0].split(",").map(h => h.trim());
     const totalLines = lines.length;
     
+    // 设置心跳检测，定期发送消息保持UI响应
+    const heartbeatInterval = setInterval(() => {
+      self.postMessage({ 
+        type: "heartbeat", 
+        message: "仍在处理中..."
+      });
+    }, 3000);
+    
     // 预分配数组空间
     const data = new Array(Math.min(20000, totalLines)); // 限制处理的最大行数以提高性能
     let validRows = 0;
@@ -23,9 +31,18 @@ function processData(text) {
     // 进度更新
     self.postMessage({ type: "progress", progress: 15 });
     
-    // 限制处理的行数
-    const maxRows = Math.min(20000, totalLines);
+    // 处理大数据集的策略
+    const isLargeDataset = totalLines > 10000;
+    const maxRows = isLargeDataset ? 20000 : totalLines; // 限制大数据集的处理行数
     const updateFrequency = Math.max(1, Math.floor(maxRows / 10));
+    
+    // 如果是大数据集，发送消息通知
+    if (isLargeDataset) {
+      self.postMessage({ 
+        type: "info", 
+        message: `检测到大型数据集(${totalLines.toLocaleString()}行)，将限制处理前${maxRows.toLocaleString()}行以保证性能`
+      });
+    }
     
     // 第一阶段：解析数据
     for (let i = 1; i < maxRows; i++) {
@@ -57,7 +74,11 @@ function processData(text) {
     // 修正数组大小
     data.length = validRows;
     
-    self.postMessage({ type: "progress", progress: 45 });
+    self.postMessage({ 
+      type: "progress", 
+      progress: 45,
+      message: "分析数据中..." 
+    });
     
     // 统计和分析
     // 只检查前500行判断列类型
@@ -82,7 +103,11 @@ function processData(text) {
       }
     }
     
-    self.postMessage({ type: "progress", progress: 60 });
+    self.postMessage({ 
+      type: "progress", 
+      progress: 60,
+      message: "计算统计数据..." 
+    });
     
     // 同时计算所有统计量，避免多次循环
     const stats = {};
@@ -123,7 +148,11 @@ function processData(text) {
       };
     });
     
-    self.postMessage({ type: "progress", progress: 80 });
+    self.postMessage({ 
+      type: "progress", 
+      progress: 80,
+      message: "准备可视化数据..." 
+    });
     
     // 准备图表数据 - 只取前20行
     const chartSampleSize = Math.min(20, data.length);
@@ -151,12 +180,27 @@ function processData(text) {
       ? { labels: chartLabels, datasets: chartDatasets } 
       : null;
     
-    self.postMessage({ type: "progress", progress: 95 });
+    self.postMessage({ 
+      type: "progress", 
+      progress: 95,
+      message: "完成处理，生成结果..." 
+    });
+    
+    // 清除心跳检测
+    clearInterval(heartbeatInterval);
     
     // 发送结果
     self.postMessage({
       type: "result",
-      results: { analysis, chartData }
+      results: { 
+        analysis, 
+        chartData,
+        summary: {
+          totalRows: totalLines - 1,
+          processedRows: validRows,
+          numericColumns: numericColumns.length
+        }
+      }
     });
     
   } catch (error) {

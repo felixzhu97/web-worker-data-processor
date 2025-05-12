@@ -65,6 +65,7 @@ web-worker-data-processor/
 - 性能对比: `docs/qa/comparison.md`
 - 用户手册: `docs/qa/user_manual.md`
 - WebWorker原理: `docs/qa/WebWorker的原理.md`
+- 测试数据文件夹： `dataset/`
 
 ## 许可证
 
